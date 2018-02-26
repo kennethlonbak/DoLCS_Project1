@@ -3,22 +3,46 @@ import pylab as py
 fiber_layup_filename_default = r"..\DTU 10MW\structural_models_v1.0\structural_models\composite_layup\composite_layup_Caps.txt"
 material_prop_filename_default = r"..\DTU 10MW\structural_models_v1.0\structural_models\ABAQUS\refblade_materials.inp"
 
-# Reading files (fiber layup, material properties)
-def read_fiber_layup(fiber_layup_filename=fiber_layup_filename_default):
-    # Reading data
-    data = py.loadtxt(fiber_layup_filename,skiprows=5)
-    # Reading header
-    with open(fiber_layup_filename,"r") as file:
-        [file.readline() for ii in range(3)]
-        header = file.readline().strip().split()
+def get_sectional_data():
+    # Reading initial sectional data
+    sections = read_initial_section_fiber_layup()
+    # Reading fiber material properties
+    mat_prop =  read_material_properties()
 
+    # Setting material properties from fiber type
+    sections = set_material_prop_for_lamina(sections, mat_prop)
 
-    fiber_layup = []
-    for ii in range(len(data)):
-        fiber_layup.append({})
-        for iii, name in enumerate(header):
-            fiber_layup[ii][name] = data[ii,iii]
-    return(fiber_layup)
+    # Setting fiber layer coordinate
+    sections = set_z_start_z_end(sections)
+
+    # Setting fiber angle
+    sections = set_fiber_angle(sections)
+    return sections
+
+def set_fiber_angle(sections):
+    for i_sec in range(1, sections["n_sec"]):
+        for i_fib in range(1, sections[i_sec]["fiber_nr"] + 1):
+            sections[i_sec][i_fib]["angle"] = 0.0
+    return sections
+
+def set_z_start_z_end(sections):
+    for i_sec in range(1, sections["n_sec"]):
+        thickness = sections[i_sec]["thickness"]
+        z_start = -thickness/2.0
+        for i_fib in range(1, sections[i_sec]["fiber_nr"] + 1):
+            z_end = z_start + sections[i_sec][i_fib]["thickness"]
+            sections[i_sec][i_fib]["z_start"] = z_start
+            sections[i_sec][i_fib]["z_end"] = z_end
+            z_start = z_end
+    return sections
+
+def set_material_prop_for_lamina(sections, mat_prop):
+    for i_sec in range(1,sections["n_sec"]):
+        for i_fib in range(1,sections[i_sec]["fiber_nr"]+1):
+            fib_type = sections[i_sec][i_fib]["fiber_type"]
+            for name in mat_prop[fib_type]:
+                sections[i_sec][i_fib][name] = mat_prop[fib_type][name]
+    return(sections)
 
 def read_material_properties(material_prop_filename=material_prop_filename_default):
     material_prop = {}
@@ -55,3 +79,34 @@ def read_material_properties(material_prop_filename=material_prop_filename_defau
                 material_prop[lamina][mat_name[mat_ind]] = line
                 read_mat_prop = 0
     return material_prop
+
+def read_initial_section_fiber_layup(fiber_layup_filename=fiber_layup_filename_default):
+    # Reading data
+    data = py.loadtxt(fiber_layup_filename,skiprows=5)
+    # Reading header
+    with open(fiber_layup_filename,"r") as file:
+        [file.readline() for ii in range(3)]
+        header = file.readline().strip().split()
+
+    sections = {}
+    for ii in range(len(data)):
+        sec_nr = int(data[ii,0])
+        sections[sec_nr] = {}
+
+        fiber_nr = 0
+        thickness = 0
+        for iii, name in enumerate(header):
+            if (name in ["Number","r_start","r_end"]):
+                if not(name == "Number"):
+                    sections[sec_nr][name] = data[ii,iii]
+            else:
+                fiber_nr += 1
+                sections[sec_nr][fiber_nr] = {}
+                sections[sec_nr][fiber_nr]["fiber_type"] = name
+                sections[sec_nr][fiber_nr]["thickness"] = data[ii, iii]
+                thickness += data[ii, iii]
+
+        sections[sec_nr]["thickness"] = thickness
+        sections[sec_nr]["fiber_nr"]  = fiber_nr
+    sections["n_sec"] = len(data)+1
+    return(sections)
