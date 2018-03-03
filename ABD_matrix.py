@@ -6,10 +6,10 @@ def test_function():
     fiber_layup = read_files.get_sectional_data()[1]
 
     # Calculate ABD matrix
-    fib_mat2ABD(fiber_layup)
+    fib2ABD(fiber_layup)
     return
 
-def fib_mat2ABD(fiber_layup):
+def fib2ABD(fiber_layup):
     '''
     :param fiber_layup: type(fiber_layup)=dict, Mandatory: numbers from 1 to n_layer where n_layer is the number of layers. n_layer
     :subparam fiber_layup[i_layer]: type(fiber_layup[i_layer])=dict, Mandatory fields: E1, E2, nu12, G12, angle, thickness, z_start, z_end. Optional fields: fiber_type,
@@ -47,6 +47,10 @@ def fib_mat2ABD(fiber_layup):
     ABD[3:, :3] = B
     ABD[3:, 3:] = D
     fiber_layup["ABD"] = ABD
+    fiber_layup["abd"] = py.inv(fiber_layup["ABD"])
+    fiber_layup["E_x"] = 1.0/(fiber_layup["abd"][0,0]*fiber_layup["thickness"])
+    fiber_layup["E_y"] = 1.0/(fiber_layup["abd"][1,1]*fiber_layup["thickness"])
+    fiber_layup["G_xy"] = 1.0/(fiber_layup["abd"][2,2]*fiber_layup["thickness"])
     return(fiber_layup)
 
 

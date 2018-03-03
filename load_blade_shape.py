@@ -35,9 +35,9 @@ def get_shape_functions():
     th_fun = lambda r: tc_fun(r) * c_fun(r)
 
     # Cap width(tw)
-    tck_tw = create_tck_from_file("radius_vs_cap_width.dat")
-    tw_fun = lambda r: spline_interpolate(tck_tw, r)
-    return c_fun, th_fun, tc_fun, tw_fun
+    tck_w = create_tck_from_file("radius_vs_cap_width.dat")
+    w_fun = lambda r: spline_interpolate(tck_w, r)
+    return c_fun, th_fun, tc_fun, w_fun
 
 def create_tck_from_file(filename):
     data = py.loadtxt(filename,skiprows=1)
