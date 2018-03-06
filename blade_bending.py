@@ -3,6 +3,54 @@ import read_files
 import ABD_matrix
 import load_blade_shape
 
+fig_path = r"C:\Users\kloenbaek\Desktop\DoLCS\Project1\Report\Figures\\"
+baseline_filename =r"C:\Users\kloenbaek\Desktop\DoLCS\DTU 10MW\aeroelastic_models_v1.0\aeroelastic_models\hawc2\data\DTU_10MW_RWT_Blade_st.dat"
+
+py.rc("font", size=9)
+
+def plot_blade_stiffness():
+    sections = calculate_blade_bending()
+
+    # Get r
+    r = sections2value(sections, "r_start")
+
+    # Get Ex
+    Ex = sections2value(sections, "E_x")
+
+    # Get Ixx
+    Ixx = sections2value(sections, "I_xx")
+
+    # Get Ixx
+    EI_x = Ex*Ixx#sections2value(sections, "EI_x")
+
+    # Load baseline values
+    data = read_baseline_data()
+    #data = py.loadtxt("bending_Stiffness.dat")
+
+    fig, ax = py.subplots(3,1,figsize=(6,4), gridspec_kw = {'hspace':0})
+
+    for temp in ax:
+        temp.grid("on",which='both')
+
+    ax[0].semilogy(r,Ex,'.-',label="Own")
+    ax[0].semilogy(data["r"], data["E"],label="HAWC2 input")
+    ax[0].set_xticklabels([])
+    ax[0].set_ylabel(r"$E_x$ [Pa]")
+
+    ax[1].semilogy(r,Ixx,'.-',label="Own")
+    ax[1].semilogy(data["r"], data["I_x"],label="HAWC2 input")
+    ax[1].set_xticklabels([])
+    ax[1].set_ylabel(r"$I_{xx}$ [m$^4$]")
+
+    ax[2].semilogy(r,EI_x,'.-',label="Own")
+    ax[2].semilogy(data["r"], data["E"]*data["I_x"],label="HAWC2 input")
+    ax[2].set_ylabel(r"$EI_{x}$ [Nm$^2$]")
+    ax[2].set_xlabel(r"Radius [m]")
+    ax[1].legend(loc=0)
+    py.tight_layout()
+    fig.savefig(fig_path + "Bending_Stiffness.png")
+    py.show()
+
 def calculate_blade_bending():
 
     # Loading blade section data
@@ -20,8 +68,6 @@ def calculate_blade_bending():
     theta = 0.0
     kappa = 0.0
 
-    r_vec = []
-    w_vec = []
     # Calculating section bending
     for i_sec in range(1, sections["n_sec"]):
         # Getting ABD matrix for each section
@@ -32,7 +78,8 @@ def calculate_blade_bending():
 
         # Calculating Inertia moment (I_xx)
         #Ixx_i = 1 / 12 * w. * t_cap. ^ 3
-        sections[i_sec]["I_xx"] = w_fun(sections[i_sec]["r_mean"])*th_fun(sections[i_sec]["r_mean"])**3/12.0
+        sections[i_sec]["I_xx"] = 1.0/12.0*w_fun(sections[i_sec]["r_mean"])*(th_fun(sections[i_sec]["r_mean"])**3-(th_fun(sections[i_sec]["r_mean"])-2*sections[i_sec]["thickness"])**3)
+        #sections[i_sec]["I_xx"] = 1.0/12.0*w_fun(sections[i_sec]["r_mean"])*th_fun(sections[i_sec]["r_mean"])**3
 
         # Calculating EI
         sections[i_sec]["EI_x"] = sections[i_sec]["E_x"]*sections[i_sec]["I_xx"]
@@ -45,24 +92,20 @@ def calculate_blade_bending():
         # Assign r_end to a short variable
         r = sections[i_sec]["r_end"]-sections[i_sec]["r_start"]
 
-        # Get equvialent moment
-        sections[i_sec]["M_w"], sections[i_sec]["M_theta"],sections[i_sec]["M_kappa"] = get_moment(sections[i_sec]["r_end"], r_i, F_i)
+        # Get equivalent moment
+        sections[i_sec]["M_w"], sections[i_sec]["M_theta"],sections[i_sec]["M_kappa"] = get_moment(sections[i_sec]["r_start"], r_i, F_i)
 
         # Calculate end displacement, angle and curvature
-        sections[i_sec]["w_end"] = r**2/(6*sections[i_sec]["EI_x"])*sections[i_sec]["M_w"] + kappa**2/2*r**2+theta*r+w
-        sections[i_sec]["theta_end"] = r/(2*sections[i_sec]["EI_x"])*sections[i_sec]["M_theta"]+ kappa*r**2+theta
-        sections[i_sec]["kappa_end"] = 1.0/(sections[i_sec]["EI_x"])*sections[i_sec]["M_kappa"]+kappa
+        sections[i_sec]["w_end"] = r**2/(6*sections[i_sec]["EI_x"])*sections[i_sec]["M_w"] +w +theta*r #+ kappa/2*r**2
+        sections[i_sec]["theta_end"] = r/(2*sections[i_sec]["EI_x"])*sections[i_sec]["M_theta"]+theta #+ kappa*r
+        sections[i_sec]["kappa_end"] = 1.0/(sections[i_sec]["EI_x"])*sections[i_sec]["M_kappa"]#+kappa
 
         # Assigning temp var for next iteration
         w = sections[i_sec]["w_end"]
         theta = sections[i_sec]["theta_end"]
         kappa = sections[i_sec]["kappa_end"]
+    return(sections)
 
-        r_vec.append(sections[i_sec]["r_mean"])
-        w_vec.append(w)
-
-    py.plot(r_vec,w_vec)
-    py.show()
 def get_moment(r_in, r_i, F_i):
     M_w = 0.0
     M_theta = 0.0
@@ -74,5 +117,47 @@ def get_moment(r_in, r_i, F_i):
             M_kappa += (r_in-r)*F_i[i]
     return(M_w, M_theta, M_kappa)
 
+def kappa_integration(sections):
+    r = []
+    kappa = []
+    for i_sec in range(1, sections["n_sec"]):
+        r.append(sections[i_sec]["r_start"])
+        kappa.append(sections[i_sec]["kappa_start"])
+    r.append(sections[i_sec]["r_end"])
+    kappa.append(sections[i_sec]["kappa_end"])
+
+    r = py.array(r)
+    r = r-r[0]
+    kappa = py.array(kappa)
+    theta_fun = lambda i_in: py.trapz(kappa[:i_in],r[:i_in])
+    w_new = []
+    theta_new = []
+    for i_in in range(1,len(r)+1):
+        theta_new.append(theta_fun(i_in))
+        w_new.append(py.trapz(theta_new,r[:i_in]))
+    return(r, w_new)
+
+def sections2value(sections, name):
+    values = []
+    for i_sec in range(1, sections["n_sec"]):
+        values.append(sections[i_sec][name])
+    return(py.array(values))
+
+def read_baseline_data(filename=baseline_filename):
+    with open(filename) as file:
+        [file.readline() for i in range(3)]
+        names = [name.strip() for name in file.readline().strip().split()]
+        n_sec = int(file.readline().strip().split()[-1])
+        data = {}
+        for name in names:
+            data[name] = []
+        for i_sec in range(n_sec):
+            values = [float(value) for value in file.readline().strip().split()]
+            for i_name, name in enumerate(names):
+                data[name].append(values[i_name])
+
+        for name in names:
+            data[name] = py.array(data[name])
+    return(data)
 if __name__ == "__main__":
-    calculate_blade_bending()
+    plot_blade_stiffness()

@@ -51,6 +51,9 @@ def create_tck_from_file(filename):
 def spline_interpolate(tck, r_in):
     if not(type(r_in) in [list, py.ndarray]):
         r_in = [r_in]
+        scaler_in = True
+    else:
+        scaler_in = False
 
     out_list = []
     for r in r_in:
@@ -68,7 +71,11 @@ def spline_interpolate(tck, r_in):
             for ii in range(tck[2]):
                 out += (r-tck[0][i_intp,0])**(tck[2]-(ii+1))*tck[1][i_intp,ii]
         out_list.append(out)
-    return py.array(out_list)
+
+    if scaler_in:
+        return out_list[0]
+    else:
+        return py.array(out_list)
 
 if __name__ == "__main__":
     test_blade_shape()

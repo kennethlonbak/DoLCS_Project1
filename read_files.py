@@ -1,11 +1,12 @@
 import pylab as py
 
-fiber_layup_filename_default = r"..\DTU 10MW\structural_models_v1.0\structural_models\composite_layup\composite_layup_Caps.txt"
-material_prop_filename_default = r"..\DTU 10MW\structural_models_v1.0\structural_models\ABAQUS\refblade_materials.inp"
+fiber_layup_filename_default = r"..\..\DTU 10MW\structural_models_v1.0\structural_models\composite_layup\composite_layup_Caps.txt"
+material_prop_filename_default = r"..\..\DTU 10MW\structural_models_v1.0\structural_models\ABAQUS\refblade_materials.inp"
 
 def get_sectional_data():
     # Reading initial sectional data
     sections = read_initial_section_fiber_layup()
+    sections = change_r_start_to_be_zero(sections)
     # Reading fiber material properties
     mat_prop =  read_material_properties()
 
@@ -103,10 +104,18 @@ def read_initial_section_fiber_layup(fiber_layup_filename=fiber_layup_filename_d
                 fiber_nr += 1
                 sections[sec_nr][fiber_nr] = {}
                 sections[sec_nr][fiber_nr]["fiber_type"] = name
-                sections[sec_nr][fiber_nr]["thickness"] = data[ii, iii]
-                thickness += data[ii, iii]
+                sections[sec_nr][fiber_nr]["thickness"] = data[ii, iii]*1e-3
+                thickness += sections[sec_nr][fiber_nr]["thickness"]
 
         sections[sec_nr]["thickness"] = thickness
         sections[sec_nr]["fiber_nr"]  = fiber_nr
     sections["n_sec"] = len(data)+1
     return(sections)
+
+def change_r_start_to_be_zero(sections):
+    r_start = sections[1]["r_start"]
+    for i_sec in range(1, sections["n_sec"]):
+        sections[i_sec]["r_start"] = sections[i_sec]["r_start"]-r_start
+        sections[i_sec]["r_end"] = sections[i_sec]["r_end"]-r_start
+    return(sections)
+
