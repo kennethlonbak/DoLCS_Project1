@@ -77,7 +77,6 @@ def calculate_blade_bending():
         sections[i_sec]["r_mean"] = (sections[i_sec]["r_start"]+sections[i_sec]["r_end"])/2.0
 
         # Calculating Inertia moment (I_xx)
-        #Ixx_i = 1 / 12 * w. * t_cap. ^ 3
         sections[i_sec]["I_xx"] = 1.0/12.0*w_fun(sections[i_sec]["r_mean"])*(th_fun(sections[i_sec]["r_mean"])**3-(th_fun(sections[i_sec]["r_mean"])-2*sections[i_sec]["thickness"])**3)
         #sections[i_sec]["I_xx"] = 1.0/12.0*w_fun(sections[i_sec]["r_mean"])*th_fun(sections[i_sec]["r_mean"])**3
 
@@ -99,11 +98,16 @@ def calculate_blade_bending():
         sections[i_sec]["w_end"] = r**2/(6*sections[i_sec]["EI_x"])*sections[i_sec]["M_w"] +w +theta*r #+ kappa/2*r**2
         sections[i_sec]["theta_end"] = r/(2*sections[i_sec]["EI_x"])*sections[i_sec]["M_theta"]+theta #+ kappa*r
         sections[i_sec]["kappa_end"] = 1.0/(sections[i_sec]["EI_x"])*sections[i_sec]["M_kappa"]#+kappa
+        #sections[i_sec]["w_end"] = kappa_integration(sections)[1][i_sec-1]
 
         # Assigning temp var for next iteration
         w = sections[i_sec]["w_end"]
         theta = sections[i_sec]["theta_end"]
         kappa = sections[i_sec]["kappa_end"]
+    w_new = kappa_integration(sections)[1]
+    for i_sec in range(1, sections["n_sec"]):
+        sections[i_sec]["w_start"] = w_new[i_sec-1]
+        sections[i_sec]["w_end"] = w_new[i_sec]
     return(sections)
 
 def get_moment(r_in, r_i, F_i):
