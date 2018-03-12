@@ -1,12 +1,18 @@
 import pylab as py
 import read_files
+from sys import platform
+from os import path
 
-fig_path = r"C:\Users\kloenbaek\Desktop\DoLCS\Project1\Report\Figures\\"
+if "linux" == platform or "linux2" == platform:
+    win_home = path.join("/media","kloenbaek","Windows")
+else:
+    win_home = "C:"
+
+fig_path = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS","Project1","Report","Figures")
 py.rc("font", size=9)
 
 def test_function():
     # Read fiber_layup
-    #fiber_layup = get_test_layup()
     fiber_layup =get_test_layup()
 
     # Calculate ABD matrix

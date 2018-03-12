@@ -2,9 +2,10 @@ import pylab as py
 import read_files
 import ABD_matrix
 import load_blade_shape
+from os import path
 
-fig_path = r"C:\Users\kloenbaek\Desktop\DoLCS\Project1\Report\Figures\\"
-baseline_filename =r"C:\Users\kloenbaek\Desktop\DoLCS\DTU 10MW\aeroelastic_models_v1.0\aeroelastic_models\hawc2\data\DTU_10MW_RWT_Blade_st.dat"
+fig_path = ABD_matrix.fig_path
+baseline_filename = path.join(ABD_matrix.win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU 10MW","aeroelastic_models_v1.0","aeroelastic_models","hawc2","data","DTU_10MW_RWT_Blade_st.dat")
 
 py.rc("font", size=9)
 

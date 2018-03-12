@@ -1,7 +1,11 @@
 import pylab as py
+from ABD_matrix import win_home
+from os import path
 
-fiber_layup_filename_default = r"..\..\DTU 10MW\structural_models_v1.0\structural_models\composite_layup\composite_layup_Caps.txt"
-material_prop_filename_default = r"..\..\DTU 10MW\structural_models_v1.0\structural_models\ABAQUS\refblade_materials.inp"
+fiber_layup_filename_default = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU_10MW","structural_models_v1.0","structural_models","composite_layup","composite_layup_Caps.txt")
+#fiber_layup_filename_default = win_home+r"\Users\kloenbaek\Desktop\DoLCS\DTU 10MW\structural_models_v1.0\structural_models\composite_layup\composite_layup_Caps.txt"
+#material_prop_filename_default = win_home+r"\Users\kloenbaek\Desktop\DoLCS\DTU 10MW\structural_models_v1.0\structural_models\ABAQUS\refblade_materials.inp"
+material_prop_filename_default = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU_10MW","structural_models_v1.0","structural_models","ABAQUS","refblade_materials.inp")
 
 def get_sectional_data():
     # Reading initial sectional data
