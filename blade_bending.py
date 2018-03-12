@@ -5,7 +5,7 @@ import load_blade_shape
 from os import path
 
 fig_path = ABD_matrix.fig_path
-baseline_filename = path.join(ABD_matrix.win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU 10MW","aeroelastic_models_v1.0","aeroelastic_models","hawc2","data","DTU_10MW_RWT_Blade_st.dat")
+baseline_filename = path.join(read_files.win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU_10MW","aeroelastic_models_v1.0","aeroelastic_models","hawc2","data","DTU_10MW_RWT_Blade_st.dat")
 
 py.rc("font", size=9)
 
@@ -49,7 +49,7 @@ def plot_blade_stiffness():
     ax[2].set_xlabel(r"Radius [m]")
     ax[1].legend(loc=0)
     py.tight_layout()
-    fig.savefig(fig_path + "Bending_Stiffness.png")
+    fig.savefig(path.join(fig_path,"Bending_Stiffness.png"))
     py.show()
 
 def calculate_blade_bending():

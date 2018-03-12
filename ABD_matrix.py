@@ -1,14 +1,8 @@
 import pylab as py
 import read_files
-from sys import platform
 from os import path
 
-if "linux" == platform or "linux2" == platform:
-    win_home = path.join("/media","kloenbaek","Windows")
-else:
-    win_home = "C:"
-
-fig_path = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS","Project1","Report","Figures")
+fig_path = path.join(read_files.win_home,"Users","kloenbaek","Desktop","DoLCS","Project1","Report","Figures")
 py.rc("font", size=9)
 
 def test_function():
@@ -36,7 +30,7 @@ def test_function():
     ax.set_ylabel("Matrix values [Pa/m]")
     ax.legend(loc=0)
     py.tight_layout()
-    fig.savefig(fig_path+"ABD_validation.png")
+    fig.savefig(path.join(fig_path,"ABD_validation.png"))
     py.show()
     return
 

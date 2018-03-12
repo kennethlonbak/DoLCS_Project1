@@ -1,19 +1,26 @@
 import pylab as py
+from ABD_matrix import fig_path
+from os import path
 
 
 def test_blade_shape():
+    py.rc("font", size=9)
     c_fun, th_fun, tc_fun, tw_fun = get_shape_functions()
 
     r_new = py.linspace(0,89,1000)
 
-    fig, ax = py.subplots(4,1)
+    fig, ax = py.subplots(4,1,gridspec_kw = {'hspace':0})
+    fig.set_size_inches(6, 4)
+    for ax_temp in ax[1::2]:
+        ax_temp.yaxis.tick_right()
+        ax_temp.yaxis.set_label_position("right")
     for ax_temp in ax:
         ax_temp.grid("on")
     ax[0].plot(r_new, c_fun(r_new))
     ax[0].set_ylabel("Chord [m]")
 
-    ax[1].plot(r_new, tc_fun(r_new))
-    ax[1].set_ylabel("Relative thickness [\%]")
+    ax[1].plot(r_new, 100*tc_fun(r_new))
+    ax[1].set_ylabel("Relative thickness [%]")
 
     ax[2].plot(r_new, th_fun(r_new))
     ax[2].set_ylabel("Thickness [m]")
@@ -21,6 +28,9 @@ def test_blade_shape():
     ax[3].plot(r_new, tw_fun(r_new))
     ax[3].set_ylabel("Cap width [m]")
     ax[3].set_xlabel("Radius [m]")
+    py.tight_layout()
+
+    fig.savefig(path.join(fig_path,"Blade_shape.png"))
     py.show()
 
 def get_shape_functions():
