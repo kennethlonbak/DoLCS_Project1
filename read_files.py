@@ -5,7 +5,7 @@ from sys import platform
 if "linux" == platform or "linux2" == platform:
     win_home = path.join("/media","kloenbaek","Windows")
 else:
-    win_home = "C:"
+    win_home = r"C:/"
 
 fiber_layup_filename_default = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU_10MW","structural_models_v1.0","structural_models","composite_layup","composite_layup_Caps.txt")
 material_prop_filename_default = path.join(win_home,"Users","kloenbaek","Desktop","DoLCS",r"DTU_10MW","structural_models_v1.0","structural_models","ABAQUS","refblade_materials.inp")

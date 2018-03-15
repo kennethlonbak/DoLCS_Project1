@@ -1,40 +1,45 @@
 import pylab as py
 import blade_bending
-from scipy.integrate import quad
+from os import path
+import ABD_matrix
+
+fig_path = ABD_matrix.fig_path
 
 def plot_blade_deflection():
     sections = blade_bending.calculate_blade_bending()
+    sections_HAWC = blade_bending.calculate_blade_bending(True)
 
-    # Extraction of defelection
-    w = []
-    r = []
-    kappa = []
-    for i_sec in range(1, sections["n_sec"]):
-        w.append(sections[i_sec]["w_start"])
-        r.append(sections[i_sec]["r_start"])
-    w.append(sections[i_sec]["w_end"])
-    r.append(sections[i_sec]["r_end"])
+    # Radial vector
+    r = blade_bending.sections2value(sections, "r_start", True)
 
-    w = py.array(w)
-    r = py.array(r)
-    r = r-r[0]
+    # Deflection vector
+    delta = blade_bending.sections2value(sections, "delta_start", True)
+    delta_HAWC = blade_bending.sections2value(sections_HAWC, "delta_start", True)
 
-    turbine_undef = get_undef_blade()
-    turbine_def = turbine_undef.copy()
-    blade_cmpx =  turbine_def["blade_fun"](r,r[-1],w)
-    turbine_def["blade"] = py.array([py.real(blade_cmpx),py.imag(blade_cmpx)])
+    # Moment vector
+    M = blade_bending.sections2value(sections, "M")
 
-    fig, ax = py.subplots(2,1)
-    plot_undef_blade(ax[0])
-    ax[0].plot(*turbine_def["blade"],label="def. blade")
+    # Curvature vector
+    kappa = blade_bending.sections2value(sections, "kappa")
+
+    r2M = lambda r_in: py.interp(r_in,r[:-1],M)
+
+    fig, ax = py.subplots(2,1, gridspec_kw = {'hspace':0},figsize=(6,4))
+    ax[0].plot(r[:-1],M)
+    ax[0].quiver(sections["r_i"],r2M(sections["r_i"]),[0]*len(sections["F_i"]),-sections["F_i"],label="Force arrows")
+    ax[0].set_ylabel("Moment [Nm]")
     ax[0].grid("on")
-    ax[0].legend(loc=0)
+    ax[0].legend()
+    ax[0].set_ylim([-2e7,7e7])
     ax[1].grid("on")
-    ax[1].plot(r,w,label="Deformed blade centerline")
+    ax[1].plot(r,delta,label="Only Spar Caps")
+    ax[1].plot(r, delta_HAWC, label="Using HAWC $EI_x$")
     ax[1].plot(r,[-18.26]*len(r),label="Tower clearance",ls="--",lw=0.9)
     ax[1].set_xlabel("Radius [m]")
     ax[1].set_ylabel("Deflection [m]")
     ax[1].legend(loc=0)
+    py.tight_layout()
+    fig.savefig(path.join(fig_path, "Deflection.png"))
     py.show()
 
 def plot_undef_blade(ax=None):
