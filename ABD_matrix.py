@@ -66,6 +66,9 @@ def fib2ABD(fiber_layup):
         D += fiber_layup[i_fib]["Q_G"] *1.0/3.0* (fiber_layup[i_fib]["z_end"]**3 - fiber_layup[i_fib]["z_start"]**3)
 
     # Collect ABD matrix
+    fiber_layup["A"] = A
+    fiber_layup["B"] = B
+    fiber_layup["D"] = D
     ABD = py.zeros((6,6))
     ABD[:3,:3] = A
     ABD[:3, 3:] = B

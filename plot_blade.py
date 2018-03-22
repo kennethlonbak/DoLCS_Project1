@@ -2,10 +2,11 @@ import pylab as py
 import blade_bending
 from os import path
 import ABD_matrix
+import plotly
 
 fig_path = ABD_matrix.fig_path
 
-def plot_blade_deflection():
+def plot_blade_deflection(use_plotly=True):
     sections = blade_bending.calculate_blade_bending()
     sections_HAWC = blade_bending.calculate_blade_bending(True)
 
@@ -40,7 +41,11 @@ def plot_blade_deflection():
     ax[1].legend(loc=0)
     py.tight_layout()
     fig.savefig(path.join(fig_path, "Deflection.png"))
-    py.show()
+
+    if use_plotly:
+        plotly.offline.plot_mpl(fig)
+    else:
+        py.show()
 
 def plot_undef_blade(ax=None):
     if ax==None:
@@ -76,7 +81,18 @@ def get_undef_blade():
     #print(py.angle(blade_normal)*180/py.pi,py.angle(shaft_normal)*180/py.pi)
     return(blade)
 
+def write_baseline_values(i_sec= 50, filename = "info_sec"):
+    section = blade_bending.calculate_blade_bending()[i_sec]
+
+    with open("%s%d.dat"%(filename,i_sec),"w") as file:
+        for name in section:
+            file.write(str(name)+" =")
+            file.write(str(section[name]))
+            file.write("\n")
+
+
 
 
 if __name__ == "__main__":
-    plot_blade_deflection()
+    write_baseline_values()
+    plot_blade_deflection(False)

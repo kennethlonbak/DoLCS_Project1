@@ -73,8 +73,13 @@ def calculate_blade_bending(use_HAWC = False):
         # Getting ABD matrix for each section
         sections[i_sec] = ABD_matrix.fib2ABD(sections[i_sec])
 
+        # Section shape
+        sections[i_sec]["cap_width"] = w_fun(sections[i_sec]["r_start"])
+        sections[i_sec]["height"] = th_fun(sections[i_sec]["r_start"])
+        sections[i_sec]["sec_length"] = sections[i_sec]["r_end"]-sections[i_sec]["r_start"]
+
         # Calculating Inertia moment (I_xx)
-        sections[i_sec]["I_xx"] = 1.0/12.0*w_fun(sections[i_sec]["r_start"])*(th_fun(sections[i_sec]["r_start"])**3-(th_fun(sections[i_sec]["r_start"])-2*sections[i_sec]["thickness"])**3)
+        sections[i_sec]["I_xx"] = 1.0/12.0*sections[i_sec]["cap_width"]*(sections[i_sec]["height"]**3-(sections[i_sec]["height"]-2*sections[i_sec]["thickness"])**3)
 
         # Calculating EI
         if (use_HAWC):
